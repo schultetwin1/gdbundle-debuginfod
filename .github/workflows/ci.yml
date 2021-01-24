@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-
+    name: 'CI'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,6 +22,7 @@ jobs:
         pip install poetry pytest
     - name: Build Package
       run: |
+        poetry install
         poetry build
     - name: Test with pytest
       run: |
