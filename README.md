@@ -6,10 +6,10 @@ LLDB which not do have debuginfod built in.
 
 ## Supported Environments
 
-| Debuggger | Versions |
-|-----------|----------|
-| gdb*      | <10.1    |
-| lldb*     | ?????    |
+| Debuggger | Versions              |
+|-----------|-----------------------|
+| gdb*      | <10.1                 |
+| lldb*     | Support in the works  |
 
 \* Debuggers must have python API enabled
 
