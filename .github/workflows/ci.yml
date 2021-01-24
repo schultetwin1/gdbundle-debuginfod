@@ -16,9 +16,10 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install Poetry
+    - name: Install Dependencies
       run: |
-        pip install poetry
+        python -m pip install --upgrade pip
+        pip install poetry pytest
     - name: Build Package
       run: |
         poetry build
