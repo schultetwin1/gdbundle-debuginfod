@@ -1,6 +1,6 @@
 # Debuginfod Plugins
 
-![PyPI](https://img.shields.io/pypi/v/gdbundle-debuginfod?style=flat-square)
+![PyPI](https://img.shields.io/pypi/v/gdbundle-debuginfod)
 ![Build](https://github.com/schultetwin1/gdbundle-debuginfod/workflows/CI/badge.svg)
 
 
