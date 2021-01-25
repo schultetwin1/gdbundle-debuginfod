@@ -1,12 +1,16 @@
 import gdb
 
 import os
+from pathlib import Path
+import requests
+import shutil
 import sys
+import tempfile
+import time
 from urllib.request import urlretrieve
 from urllib.parse import urljoin, quote
 from urllib.error import HTTPError
 
-from progressist import ProgressBar
 
 DEFAULT_SYMBOL_SERVER_URL="https://debuginfod.elfutils.org/"
 
@@ -16,6 +20,50 @@ cache_dir = os.path.join(os.environ['HOME'], '.cache', 'debuginfod')
 env_cache_dir = os.getenv("DEBUGINFOD_CACHE_PATH")
 if env_cache_dir is not None:
     cache_dir = env_cache_dir
+env_timeout_secs = os.getenv("DEBUGINFOD_TIMEOUT")
+timeout_secs = 90 if env_timeout_secs is None else int(env_timeout_secs)
+verbose = os.getenv("DEBUGINFOD_VERBOSE") is not None
+
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
+
+def download_file(url, destination):
+    if verbose:
+        print("[debuginfod] Downloading {0} to {1}".format(url, destination))
+    # Download to a temporary file first
+    temp = tempfile.NamedTemporaryFile()
+
+    response = requests.get(url, stream=True, timeout=timeout_secs)
+    if response.status_code != 200:
+        if response.status_code == 404:
+            return None
+        else:
+            raise RuntimeError(f"Request to {url} returned status code {response.status_code}")
+
+    bytes_downloaded = 0
+    start_time = time.time()
+
+    for data in response.iter_content(chunk_size=None):
+        temp.write(data)
+        current_time = time.time()
+        bytes_downloaded += len(data)
+        sys.stdout.write('\r[debuginfod] Downloading... {} bytes'.format(sizeof_fmt(bytes_downloaded)))
+        sys.stdout.flush()
+    sys.stdout.write("\n")
+    temp.flush()
+
+    destination = Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+
+    shutil.copy(temp.name, str(destination))
+
+    return str(destination)
+
+    
 
 def try_fetch_symbols(objfile, build_id, cache_dir):
     print('[debuginfod] Searching for symbols for {0}'.format(objfile.filename))
@@ -27,13 +75,6 @@ def try_fetch_symbols(objfile, build_id, cache_dir):
         return cached_file
 
     # File not cached, attempt to download for server
-    try:
-        d = os.path.dirname(cached_file)
-        if not os.path.isdir(d):
-            os.makedirs(d)
-    except OSError:
-        pass
-
     servers = os.getenv('DEBUGINFOD_URLS')
     if servers is None:
         servers = [DEFAULT_SYMBOL_SERVER_URL]
@@ -42,18 +83,9 @@ def try_fetch_symbols(objfile, build_id, cache_dir):
 
     for server in servers:
         url = urljoin(server, quote(url_key))
-        bar = ProgressBar(template="Downloading... |{animation}| {done:B}/{total:B}")
-        try:
-            urlretrieve(url, cached_file, reporthook=bar.on_urlretrieve)
-            return cached_file
-        except HTTPError as exception:
-            if exception.code == 404:
-                continue
-            else:
-                print('[debuginfod] ' + exception)
-        except:
-            print("[debuginfod] Unexpected error:", sys.exc_info()[0])
-            raise
+        dest_file = download_file(url, cached_file)
+        if dest_file is not None:
+            return dest_file
     return None
 
 def fetch_symbols_for(objfile):
