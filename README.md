@@ -1,8 +1,14 @@
 # Debuginfod Plugins
 
+![PyPI](https://img.shields.io/pypi/v/gdbundle-debuginfod?style=flat-square)
+![Build](https://github.com/schultetwin1/gdbundle-debuginfod/workflows/CI/badge.svg)
+
+
 This repo contains both a GDB and LLDB plugin to support
 [debuginfod](https://www.mankier.com/8/debuginfod#) in the versions of GDB and
 LLDB which not do have debuginfod built in.
+
+WARNING: Currently these plugins only support downloading symbols and not sources.
 
 ## Supported Environments
 
