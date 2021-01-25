@@ -13,6 +13,9 @@ DEFAULT_SYMBOL_SERVER_URL="https://debuginfod.elfutils.org/"
 # Default cache of symbol files is:
 # ~/.cache/debuginfod/.build-id
 cache_dir = os.path.join(os.environ['HOME'], '.cache', 'debuginfod')
+env_cache_dir = os.getenv("DEBUGINFOD_CACHE_PATH")
+if env_cache_dir is not None:
+    cache_dir = env_cache_dir
 
 def try_fetch_symbols(objfile, build_id, cache_dir):
     print('[debuginfod] Searching for symbols for {0}'.format(objfile.filename))
