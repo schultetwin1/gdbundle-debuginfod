@@ -1,5 +1,6 @@
 import gdb
 
+from elftools.elf.elffile import ELFFile
 import os
 from pathlib import Path
 import requests
@@ -23,6 +24,18 @@ if env_cache_dir is not None:
 env_timeout_secs = os.getenv("DEBUGINFOD_TIMEOUT")
 timeout_secs = 90 if env_timeout_secs is None else int(env_timeout_secs)
 verbose = os.getenv("DEBUGINFOD_VERBOSE") is not None
+
+def symbols_in_objfile(objfile):
+    path = objfile.filename if hasattr(objfile, 'filename') else None
+    if not Path(path).exists():
+        return False
+
+    with open(path, 'rb') as f:
+        elf = ELFFile(f)
+        return bool(elf.get_section_by_name('.debug_info') or
+                    elf.get_section_by_name('.zdebug_info'))
+
+    return False
 
 def sizeof_fmt(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
@@ -89,6 +102,9 @@ def try_fetch_symbols(objfile, build_id, cache_dir):
     return None
 
 def fetch_symbols_for(objfile):
+    if symbols_in_objfile(objfile):
+        # The symbols for this binary are in the ELF
+        return
     if getattr(objfile, 'owner', None) is not None or any(o.owner == objfile for o in gdb.objfiles()):
         # This is either a separate debug file or this file already
         # has symbols in a separate debug file.

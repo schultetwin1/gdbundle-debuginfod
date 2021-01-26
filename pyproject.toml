@@ -9,6 +9,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.6"
 requests = "^2.25.1"
+pyelftools = "^0.27"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
