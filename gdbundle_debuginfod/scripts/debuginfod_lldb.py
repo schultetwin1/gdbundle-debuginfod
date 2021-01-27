@@ -48,6 +48,6 @@ def load_symbols(debugger, command, result, internal_dict):
                 debug_file = try_fetch_symbols(file_spec, build_id)
                 if debug_file:
                     print(f"[debuginfod] Reading symbols from {debug_file}")
-                    debugger.HandleCommand(f'target symbols add {debug_file}')
+                    debugger.HandleCommand(f'target symbols add -s {file_spec} {debug_file}')
                 else:
                     print(f"[debuginfod] Failed to find symbols for {file_spec}")
