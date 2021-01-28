@@ -3,8 +3,7 @@ import lldb
 import os
 import sys
 
-sys.path.append(os.path.expanduser(os.path.dirname(__file__)))
-from debuginfod import try_fetch_symbols
+import pydebuginfod
 
 def __lldb_init_module(debugger, internal_dict):
     debugger.HandleCommand('command script add -f debuginfod_lldb.load_symbols symbols')
@@ -45,7 +44,7 @@ def load_symbols(debugger, command, result, internal_dict):
                 if has_debug_symbols(module):
                     continue
 
-                debug_file = try_fetch_symbols(file_spec, build_id)
+                debug_file = pydebuginfod.get_debuginfo(build_id)
                 if debug_file:
                     print(f"[debuginfod] Reading symbols from {debug_file}")
                     debugger.HandleCommand(f'target symbols add -s {file_spec} {debug_file}')

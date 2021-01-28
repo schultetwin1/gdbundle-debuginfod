@@ -110,6 +110,17 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
+name = "pydebuginfod"
+version = "0.0.1"
+description = "A python client for the debuginfod server"
+category = "main"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[package.dependencies]
+requests = ">=2.25.1,<3.0.0"
+
+[[package]]
 name = "pyelftools"
 version = "0.27"
 description = "Library for analyzing ELF files and DWARF debugging information"
@@ -210,7 +221,7 @@ testing = ["pytest (>=3.5,!=3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "cb534b6a81399bbbd612f0f5731d4286aaed6ca6f75881057c185dc4bca82b34"
+content-hash = "95570db84ee505643251b56cf7a9a3b557139fbfe8ca0eea805e7a9dc8c01416"
 
 [metadata.files]
 atomicwrites = [
@@ -256,6 +267,10 @@ pluggy = [
 py = [
     {file = "py-1.10.0-py2.py3-none-any.whl", hash = "sha256:3b80836aa6d1feeaa108e046da6423ab8f6ceda6468545ae8d02d9d58d18818a"},
     {file = "py-1.10.0.tar.gz", hash = "sha256:21b81bda15b66ef5e1a777a21c4dcd9c20ad3efd0b3f817e7a809035269e1bd3"},
+]
+pydebuginfod = [
+    {file = "pydebuginfod-0.0.1-py3-none-any.whl", hash = "sha256:38261dff0dff8b03bcee2562e4e268bb7c6c2863e099bfef4cead728da631db1"},
+    {file = "pydebuginfod-0.0.1.tar.gz", hash = "sha256:441caec1d17655d0e5e23b0109c3fa31c5100ae86c15b41dc9d4e569acccea54"},
 ]
 pyelftools = [
     {file = "pyelftools-0.27-py2.py3-none-any.whl", hash = "sha256:5609aa6da1123fccfae2e8431a67b4146aa7fad5b3889f808df12b110f230937"},

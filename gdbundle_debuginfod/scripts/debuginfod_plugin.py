@@ -5,8 +5,7 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.append(os.path.expanduser(os.path.dirname(__file__)))
-from debuginfod import try_fetch_symbols
+import pydebuginfod
 
 def symbols_in_objfile(objfile):
     path = objfile.filename if hasattr(objfile, 'filename') else None
@@ -29,7 +28,7 @@ def fetch_symbols_for(objfile):
 
     build_id = objfile.build_id if hasattr(objfile, 'build_id') else None
     if build_id:
-        debug_file = try_fetch_symbols(objfile.filename, build_id)
+        debug_file = pydebuginfod.get_debuginfo(build_id)
         if debug_file:
             print(f"[debuginfod] Reading symbols from {debug_file}")
             objfile.add_separate_debug_file(debug_file)
