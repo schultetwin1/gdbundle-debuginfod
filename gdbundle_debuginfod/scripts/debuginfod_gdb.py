@@ -40,3 +40,20 @@ def new_objfile(event):
     fetch_symbols_for(event.new_objfile)
 
 gdb.events.new_objfile.connect(new_objfile)
+
+class SymLoadCmd(gdb.Command):
+    """Attempts to load symbols for ALL objects"""
+
+    def __init__(self) -> None:
+        super(SymLoadCmd, self).__init__("symload", gdb.COMMAND_USER)
+
+    def invoke(self, args, from_tty):
+        for objfile in gdb.objfiles():
+            fetch_symbols_for(objfile)
+
+    def complete(self, text, word):
+        # We expect the argument passed to be a symbol so fallback to the
+        # internal tab-completion handler for symbols
+        return gdb.COMPLETE_SYMBOL
+
+SymLoadCmd()
