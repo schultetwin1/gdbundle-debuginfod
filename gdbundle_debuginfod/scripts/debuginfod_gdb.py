@@ -1,11 +1,12 @@
 import gdb
 
+import argparse
 from elftools.elf.elffile import ELFFile
-import os
-import sys
 from pathlib import Path
 
 import pydebuginfod
+
+dne_on_server = set()
 
 def symbols_in_objfile(objfile):
     path = objfile.filename if hasattr(objfile, 'filename') else None
@@ -26,6 +27,9 @@ def fetch_symbols_for(objfile):
         # has symbols in a separate debug file.
         return
 
+    if objfile.filename in dne_on_server:
+        return
+
     build_id = objfile.build_id if hasattr(objfile, 'build_id') else None
     if build_id:
         print(f"[debuginfod] Searching for symbols from {objfile.filename} ({build_id})")
@@ -35,6 +39,7 @@ def fetch_symbols_for(objfile):
             objfile.add_separate_debug_file(debug_file)
         else:
             print(f"[debuginfod] Failed to find symbols for {objfile.filename}")
+            dne_on_server.add(objfile.filename)
 
 def new_objfile(event):
     fetch_symbols_for(event.new_objfile)
@@ -42,12 +47,22 @@ def new_objfile(event):
 gdb.events.new_objfile.connect(new_objfile)
 
 class SymLoadCmd(gdb.Command):
-    """Attempts to load symbols for ALL objects"""
+    """Attempts to load symbols for loaded modules by using debuginfod
+
+    Use -f or --force to force re-load
+    """
 
     def __init__(self) -> None:
         super(SymLoadCmd, self).__init__("symload", gdb.COMMAND_USER)
 
     def invoke(self, args, from_tty):
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-f", "--force", help="Attempt to reload failed downloads", action="store_true")
+
+        parsed_args = parser.parse_args(gdb.string_to_argv(args))
+        if parsed_args.force:
+            dne_on_server.clear()
+
         for objfile in gdb.objfiles():
             fetch_symbols_for(objfile)
 

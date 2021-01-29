@@ -1,9 +1,10 @@
 import lldb
 
-import os
-import sys
-
+import argparse
 import pydebuginfod
+import shlex
+
+dne_on_server = set()
 
 def __lldb_init_module(debugger, internal_dict):
     debugger.HandleCommand('command script add -f debuginfod_lldb.load_symbols symload')
@@ -31,6 +32,13 @@ def get_build_id(module):
     return None
 
 def load_symbols(debugger, command, result, internal_dict):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--force", help="Attempt to reload failed downloads", action="store_true")
+
+    parsed_args = parser.parse_args(shlex.split(command))
+    if parsed_args.force:
+        dne_on_server.clear()
+
     num_targets = debugger.GetNumTargets()
     for i in range(num_targets):
         target = debugger.GetTargetAtIndex(i)
@@ -46,6 +54,9 @@ def load_symbols(debugger, command, result, internal_dict):
                 if has_debug_symbols(module):
                     continue
 
+                if str(file_spec) in dne_on_server:
+                    return
+
                 print(f"[debuginfod] Searching for symbols from {file_spec} ({build_id})")
                 debug_file = pydebuginfod.get_debuginfo(build_id)
                 if debug_file:
@@ -53,3 +64,4 @@ def load_symbols(debugger, command, result, internal_dict):
                     debugger.HandleCommand(f'target symbols add -s {file_spec} {debug_file}')
                 else:
                     print(f"[debuginfod] Failed to find symbols for {file_spec}")
+                    dne_on_server.add(str(file_spec))
