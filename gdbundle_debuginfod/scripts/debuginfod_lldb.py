@@ -5,6 +5,7 @@ import pydebuginfod
 import shlex
 
 dne_on_server = set()
+client = pydebuginfod.Client()
 
 def __lldb_init_module(debugger, internal_dict):
     debugger.HandleCommand('command script add -f debuginfod_lldb.load_symbols symload')
@@ -58,7 +59,7 @@ def load_symbols(debugger, command, result, internal_dict):
                     return
 
                 print(f"[debuginfod] Searching for symbols from {file_spec} ({build_id})")
-                debug_file = pydebuginfod.get_debuginfo(build_id)
+                debug_file = client.get_debuginfo(build_id)
                 if debug_file:
                     print(f"[debuginfod] Reading symbols from {debug_file}")
                     debugger.HandleCommand(f'target symbols add -s {file_spec} {debug_file}')
