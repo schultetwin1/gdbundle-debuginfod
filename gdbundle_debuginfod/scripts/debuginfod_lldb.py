@@ -6,7 +6,9 @@ import sys
 import pydebuginfod
 
 def __lldb_init_module(debugger, internal_dict):
-    debugger.HandleCommand('command script add -f debuginfod_lldb.load_symbols symbols')
+    debugger.HandleCommand('command script add -f debuginfod_lldb.load_symbols symload')
+    debugger.HandleCommand('target stop-hook add -o symload')
+    print("[debuginfod] Please run `symload` to load symbols")
 
 def has_debug_symbols(module):
     for section in module.section_iter():
@@ -44,6 +46,7 @@ def load_symbols(debugger, command, result, internal_dict):
                 if has_debug_symbols(module):
                     continue
 
+                print(f"[debuginfod] Searching for symbols from {file_spec} ({build_id})")
                 debug_file = pydebuginfod.get_debuginfo(build_id)
                 if debug_file:
                     print(f"[debuginfod] Reading symbols from {debug_file}")
