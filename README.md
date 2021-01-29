@@ -8,18 +8,16 @@ This repo contains both a GDB and LLDB plugin to support
 [debuginfod](https://www.mankier.com/8/debuginfod#) in the versions of GDB and
 LLDB which not do have debuginfod built in.
 
-WARNING: Currently these plugins only support downloading symbols and not sources.
+WARNING: Currently these plugins only support downloading symbols/ These
+plugin **do not** support sources.
 
 ## Supported Environments
 
-| Debuggger | Versions              |
-|-----------|-----------------------|
-| gdb*      | <10.1                 |
-| lldb*     | Support in the works  |
+This works in both LLDB and GDB. As of GDB 10.1, debuginfod support is built
+into GDB and so this plugin is not needed.
 
-\* Debuggers must have python API enabled
 
-## Getting Started
+## Installation
 
 These plugins can be installed in two different ways:
 
@@ -40,3 +38,14 @@ pip install gdbundle-debuginfod-plugin
 ### Manual Install
 
 Instructions to come...
+
+## Usage
+
+Once installed, symbols will load automatically on GDB.
+
+On LLDB, users will need to run the following command once to load initial
+symbols.
+
+```shell
+symload
+```
