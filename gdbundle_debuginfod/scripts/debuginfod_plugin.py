@@ -28,6 +28,7 @@ def fetch_symbols_for(objfile):
 
     build_id = objfile.build_id if hasattr(objfile, 'build_id') else None
     if build_id:
+        print(f"[debuginfod] Searching for symbols from {objfile.filename} ({build_id})")
         debug_file = pydebuginfod.get_debuginfo(build_id)
         if debug_file:
             print(f"[debuginfod] Reading symbols from {debug_file}")
