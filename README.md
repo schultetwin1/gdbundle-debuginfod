@@ -41,11 +41,46 @@ Instructions to come...
 
 ## Usage
 
-Once installed, symbols will load automatically on GDB.
+Once installed, you will have access to the `dbgd` command in both GDB and
+LLDB. Run `dbgd --help` to see the full list of commands. Normal usage will
+be covered here.
 
-On LLDB, users will need to run the following command once to load initial
-symbols.
+By default, symbols will load automatically. :warning: This feature is not
+yet implemented on LLDB! :warning:
 
-```shell
-symload
+### Load symbols manually
+
+```
+debugger> dbgd symbols load
+```
+
+### Turn on / off auto loading of symbols
+
+```
+debugger> dbgd symbols autoload on
+debugger> dbgd symbols autoload off
+```
+
+### List loaded symbols
+
+```
+debugger> dbgd symbols list
+```
+
+### List all debuginfod servers
+
+```
+debugger> dbgd servers list
+```
+
+### Add a debuginfod server
+
+```
+debugger> dbgd servers add [url]
+```
+
+### Remove a debuginfod server
+
+```
+debugger> dbgd servers rm [index]
 ```
