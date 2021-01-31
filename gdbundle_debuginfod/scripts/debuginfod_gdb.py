@@ -11,7 +11,7 @@ client = pydebuginfod.Client()
 
 def symbols_in_objfile(objfile):
     path = objfile.filename if hasattr(objfile, 'filename') else None
-    if not Path(path).exists():
+    if path is None or Path(path).exists() is False:
         return False
 
     with open(path, 'rb') as f:
