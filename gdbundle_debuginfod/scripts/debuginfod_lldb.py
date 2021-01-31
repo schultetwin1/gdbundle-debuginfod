@@ -41,10 +41,11 @@ def dbgd(debugger, command, result, internal_dict):
     symbols_subparsers = parser_symbols.add_subparsers()
 
     parser_symbols_load = symbols_subparsers.add_parser('load', help="Load Symbols")
-    parser_symbols_load.add_argument("-a", "--auto", help="Enable automatic loading", action="store_true")
-    parser_symbols_load.add_argument("-m", "--manual", help="Disable automatic loading", action="store_true")
     parser_symbols_load.add_argument("-f", "--force", help="Force re-load symbols", action="store_true")
     parser_symbols_load.set_defaults(func=load_symbols)
+    parser_symbols_autoload = symbols_subparsers.add_parser('autoload', help="Turn symbol load on / off")
+    parser_symbols_autoload.add_argument("switch", choices=["on", "off"])
+    parser_symbols_autoload.set_defaults(func=autoload_symbols)
     parser_symbols_list = symbols_subparsers.add_parser('list', help="List loaded symbols")
     parser_symbols_list.set_defaults(func=list_symbols)
 
@@ -123,15 +124,18 @@ def disable_auto_load(debugger):
         output = run_command(debugger, 'target stop-hook delete {}'.format(hook_idx))
         hook_idx = None
 
+def autoload_symbols(debugger, result, args):
+    if args.switch.lower() == 'on':
+        enable_auto_load(debugger)
+    elif args.switch.lower() == 'off':
+        disable_auto_load(debugger)
+    else:
+        print("Unknown switch {}".format(args.switch))
+
+
 def load_symbols(debugger, result, args):
     if args.force:
         dne_on_server.clear()
-
-    if args.auto:
-        enable_auto_load(debugger)
-
-    if args.manual:
-        disable_auto_load(debugger)
 
     num_targets = debugger.GetNumTargets()
     for i in range(num_targets):
