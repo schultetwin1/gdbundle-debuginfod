@@ -1,13 +1,55 @@
 import gdb
+import sys
+import os
 
-import argparse
 from elftools.elf.elffile import ELFFile
 from pathlib import Path
 
-import pydebuginfod
+csfp = os.path.abspath(os.path.dirname(__file__))
+if csfp not in sys.path:
+    sys.path.insert(0, csfp)
 
-dne_on_server = set()
-client = pydebuginfod.Client()
+from dbgd_plugin import DbgdPlugin
+
+class DbgdPluginGDB(DbgdPlugin):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def list_symbols(self, args):
+        for objfile in gdb.objfiles():
+            if getattr(objfile, 'owner', None) is not None:
+                continue
+
+            build_id = get_build_id(objfile)
+            path = objfile.filename if hasattr(objfile, 'filename') else None
+
+            has_symbols = symbols_in_objfile(objfile) or any(o.owner == objfile for o in gdb.objfiles())
+
+            print(f"{path} ({build_id}) {has_symbols}")
+
+    def load_symbols(self, args):
+        if args.force:
+            self._dne.clear()
+
+        for objfile in gdb.objfiles():
+            fetch_symbols_for(objfile)
+
+    def autoload_symbols(self, args):
+        if args.switch.lower() == 'on':
+            self._enable_auto_load()
+        elif args.switch.lower() == 'off':
+            self._disable_auto_load()
+        else:
+            print("Unknown switch {}".format(args.switch))
+
+    def _enable_auto_load(self):
+        gdb.events.new_objfile.connect(new_objfile)
+
+    def _disable_auto_load(self):
+        gdb.events.new_objfile.disconnect(new_objfile)
+
+def get_build_id(objfile):
+    return objfile.build_id if hasattr(objfile, 'build_id') else None
 
 def symbols_in_objfile(objfile):
     path = objfile.filename if hasattr(objfile, 'filename') else None
@@ -28,19 +70,19 @@ def fetch_symbols_for(objfile):
         # has symbols in a separate debug file.
         return
 
-    if objfile.filename in dne_on_server:
+    if objfile.filename in plugin._dne:
         return
 
     build_id = objfile.build_id if hasattr(objfile, 'build_id') else None
     if build_id:
         print(f"[debuginfod] Searching for symbols from {objfile.filename} ({build_id})")
-        debug_file = client.get_debuginfo(build_id)
+        debug_file = plugin._client.get_debuginfo(build_id)
         if debug_file:
             print(f"[debuginfod] Reading symbols from {debug_file}")
             objfile.add_separate_debug_file(debug_file)
         else:
             print(f"[debuginfod] Failed to find symbols for {objfile.filename}")
-            dne_on_server.add(objfile.filename)
+            plugin._dne.append(objfile.filename)
 
 def new_objfile(event):
     fetch_symbols_for(event.new_objfile)
@@ -54,18 +96,12 @@ class SymLoadCmd(gdb.Command):
     """
 
     def __init__(self) -> None:
-        super(SymLoadCmd, self).__init__("symload", gdb.COMMAND_USER)
+        super(SymLoadCmd, self).__init__("dbgd", gdb.COMMAND_USER)
 
     def invoke(self, args, from_tty):
-        parser = argparse.ArgumentParser()
-        parser.add_argument("-f", "--force", help="Attempt to reload failed downloads", action="store_true")
+        commands = gdb.string_to_argv(args)
+        plugin.run_command(commands)
 
-        parsed_args = parser.parse_args(gdb.string_to_argv(args))
-        if parsed_args.force:
-            dne_on_server.clear()
-
-        for objfile in gdb.objfiles():
-            fetch_symbols_for(objfile)
 
     def complete(self, text, word):
         # We expect the argument passed to be a symbol so fallback to the
@@ -73,3 +109,4 @@ class SymLoadCmd(gdb.Command):
         return gdb.COMPLETE_SYMBOL
 
 SymLoadCmd()
+plugin =  DbgdPluginGDB()
