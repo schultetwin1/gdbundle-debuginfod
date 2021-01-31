@@ -79,6 +79,7 @@ def list_servers(debugger, result, args):
 
 def add_server(debugger, result, args):
     client.urls.append(args.url)
+    dne_on_server.clear()
 
 def rm_server(debugger, result, args):
     if int(args.index) < len(client.urls):
