@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gdbundle-debuginfod"
-version = "0.2.0"
+version = "0.3.0"
 description = "GDB and LLDB plugins to enable older versions of GDB and LLDB to support debuginfod"
 authors = ["Matt Schulte <schultetwin1@gmail.com>"]
 license = "MIT"
