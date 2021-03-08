@@ -10,7 +10,7 @@ readme = "README.md"
 python = "^3.6"
 requests = "^2.25.1"
 pyelftools = "^0.27"
-pydebuginfod = "^0.1"
+pydebuginfod = "^0.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
